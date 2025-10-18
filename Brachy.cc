@@ -66,7 +66,7 @@ int main(int argc ,char ** argv)
  // Construct the default run manager
  //
   auto* pRunManager = G4RunManagerFactory::CreateRunManager();
-  G4int nThreads = 4;
+  G4int nThreads = 8;
   pRunManager->SetNumberOfThreads(nThreads);
  
   G4cout << "***********************" << G4endl;

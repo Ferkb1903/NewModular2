@@ -5,11 +5,10 @@
 /event/verbose 0
 #### Define the geometry of the Flexi source
 /source/switch Flexi
-# Example heterogeneity settings (uncomment to activate)
-#/phantom/heterogeneity/enable true
-#/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
-#/phantom/heterogeneity/size 1.0 1.0 1.0 cm
-#/phantom/heterogeneity/position 0.0 0.0 0.0 cm
+/phantom/heterogeneity/enable true
+/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
+/phantom/heterogeneity/size 6.0 6.0 6.0 mm
+/phantom/heterogeneity/position 10.0 0.0 0.0 mm
 ###### Generation of primary field
 #### Generate gamma deriving from radioactive decay
 /control/execute iridium_source_primary.mac
