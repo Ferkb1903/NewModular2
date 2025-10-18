@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "analysis_oncura.C": "cpp",
+        "analysis.C": "cpp",
+        "compare.C": "cpp",
+        "convert.C": "cpp",
+        "macro.C": "cpp",
+        "plot_primary.C": "cpp",
+        "TG43_relative_dose.C": "cpp",
+        "compare_all.C": "cpp"
+    }
+}

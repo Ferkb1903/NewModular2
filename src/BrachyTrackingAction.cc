@@ -1,0 +1,87 @@
+//
+// ********************************************************************
+// * License and Disclaimer                                           *
+// *                                                                  *
+// * The  Geant4 software  is  copyright of the Copyright Holders  of *
+// * the Geant4 Collaboration.  It is provided  under  the terms  and *
+// * conditions of the Geant4 Software License,  included in the file *
+// * LICENSE and available at  http://cern.ch/geant4/license .  These *
+// * include a list of copyright holders.                             *
+// *                                                                  *
+// * Neither the authors of this software system, nor their employing *
+// * institutes,nor the agencies providing financial support for this *
+// * work  make  any representation or  warranty, express or implied, *
+// * regarding  this  software system or assume any liability for its *
+// * use.  Please see the license in the file  LICENSE  and URL above *
+// * for the full disclaimer and the limitation of liability.         *
+// *                                                                  *
+// * This  code  implementation is the result of  the  scientific and *
+// * technical work of the GEANT4 collaboration.                      *
+// * By using,  copying,  modifying or  distributing the software (or *
+// * any work based  on the software)  you  agree  to acknowledge its *
+// * use  in  resulting  scientific  publications,  and indicate your *
+// * acceptance of all terms of the Geant4 Software license.          *
+// ********************************************************************
+//
+#include "BrachyTrackingAction.hh"
+
+#include "BrachyTrackInformation.hh"
+
+#include "G4Gamma.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4Track.hh"
+#include "G4TrackingManager.hh"
+
+namespace
+{
+  BrachyTrackInformation* EnsureTrackInformation(const G4Track* track)
+  {
+    auto* existing = dynamic_cast<BrachyTrackInformation*>(track->GetUserInformation());
+    if (existing) {
+      return existing;
+    }
+
+    auto* info = new BrachyTrackInformation();
+
+    if (track->GetParentID() == 0 && track->GetDefinition() == G4Gamma::Definition()) {
+      info->SetPhotonLineage(true);
+    }
+
+    const_cast<G4Track*>(track)->SetUserInformation(info);
+    return info;
+  }
+}
+
+void BrachyTrackingAction::PreUserTrackingAction(const G4Track* track)
+{
+  EnsureTrackInformation(track);
+}
+
+void BrachyTrackingAction::PostUserTrackingAction(const G4Track* track)
+{
+  auto* secondaries = fpTrackingManager->GimmeSecondaries();
+  if (!secondaries) {
+    return;
+  }
+
+  auto* parentInfo = EnsureTrackInformation(track);
+  const auto parentIsGamma = (track->GetDefinition() == G4Gamma::Definition());
+  const G4bool parentPhotonLineage = parentInfo->IsPhotonLineage();
+
+  for (auto* secondary : *secondaries) {
+    auto* info = new BrachyTrackInformation();
+
+    const auto* definition = secondary->GetDefinition();
+    const G4double charge = definition->GetPDGCharge();
+
+    if (definition == G4Gamma::Definition() && parentPhotonLineage) {
+      info->SetPhotonLineage(true);
+    }
+
+    if (charge != 0.0 && parentIsGamma && parentPhotonLineage) {
+      info->SetPrimaryDoseCarrier(true);
+    }
+
+    secondary->SetUserInformation(info);
+  }
+}

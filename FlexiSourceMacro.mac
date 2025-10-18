@@ -1,0 +1,37 @@
+/run/initialize
+/control/verbose 1
+/tracking/verbose 0
+/run/verbose 0
+/event/verbose 0
+#### Define the geometry of the Flexi source
+/source/switch Flexi
+# Example heterogeneity settings (uncomment to activate)
+#/phantom/heterogeneity/enable true
+#/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
+#/phantom/heterogeneity/size 1.0 1.0 1.0 cm
+#/phantom/heterogeneity/position 0.0 0.0 0.0 cm
+###### Generation of primary field
+#### Generate gamma deriving from radioactive decay
+/control/execute iridium_source_primary.mac
+# Scoring mesh is used to calculate
+#  the energy deposition in the phantom
+/score/create/boxMesh boxMesh_4
+#
+# the voxels are 0.25 mm wide.
+/score/mesh/boxSize 10.0125 10.0125 0.0125 cm
+/score/mesh/nBin 801 801 1
+/score/quantity/energyDeposit eDep
+/score/quantity/energyDeposit eDepPrimary
+/score/quantity/energyDeposit eDepSecondary
+#
+/score/close
+#
+/score/list                                             
+/run/beamOn 5000
+#
+# Dump scores to a file
+#
+/score/dumpQuantityToFile boxMesh_4 eDep EnergyDeposition_Flexi.out
+/score/dumpQuantityToFile boxMesh_4 eDepPrimary EnergyDeposition_Flexi_primary.out
+/score/dumpQuantityToFile boxMesh_4 eDepSecondary EnergyDeposition_Flexi_secondary.out
+#
