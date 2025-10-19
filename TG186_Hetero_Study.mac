@@ -1,0 +1,31 @@
+# =================================================================
+# HETEROGENEITY STUDY - TG186 Iridium-192 Source
+# =================================================================
+
+/control/verbose 0
+/run/verbose 0
+
+# ==== GEOMETRY SETUP ====
+/control/execute TG186_Analysis.mac
+
+# This will set up:
+# - Phantom: 30x30x30 cm water
+# - Scoring mesh: 2D XY at z=0, 300x300 voxels, ±150mm range
+# - Default heterogeneity: OFF
+
+# ==== SCENARIO 1: BONE CLOSE TO SOURCE (10-70mm) ====
+# Best for seeing ATTENUATION effect
+
+/run/initialize
+
+# Enable bone heterogeneity
+/phantom/heterogeneity/enable true
+/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
+/phantom/heterogeneity/size 6.0 6.0 6.0 cm
+
+# Position 1: Close to source (surface 10mm away) - ATTENUATION DOMINANT
+/phantom/heterogeneity/position 40.0 0.0 0.0 mm
+
+/source/switch TG186
+/run/beamOn 1000000
+# Output: brachytherapy_*.root (WITH bone close)

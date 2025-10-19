@@ -256,6 +256,8 @@ void BrachyDetectorConstruction::EnableHeterogeneity(G4bool enable)
 {
   fHeterogeneityEnabled = enable;
   if (fWorldPhys) {
+    // Rebuild heterogeneity with new state
+    BuildHeterogeneity();
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
   }
 }
@@ -274,6 +276,8 @@ void BrachyDetectorConstruction::SetHeterogeneityMaterial(const G4String& materi
 
   fHeterogeneityMaterialName = materialName;
   if (fWorldPhys) {
+    // Rebuild heterogeneity with new material
+    BuildHeterogeneity();
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
   }
 }
@@ -287,6 +291,8 @@ void BrachyDetectorConstruction::SetHeterogeneitySize(const G4ThreeVector& size)
 
   fHeterogeneityHalfLengths = 0.5 * size;
   if (fWorldPhys) {
+    // Rebuild heterogeneity with new size
+    BuildHeterogeneity();
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
   }
 }
@@ -295,18 +301,37 @@ void BrachyDetectorConstruction::SetHeterogeneityPosition(const G4ThreeVector& p
 {
   fHeterogeneityPosition = position;
   if (fWorldPhys) {
+    // Rebuild heterogeneity with new position
+    BuildHeterogeneity();
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
   }
 }
 
 void BrachyDetectorConstruction::BuildHeterogeneity()
 {
-  if (!fHeterogeneityEnabled) {
-    fHeterogeneitySolid = nullptr;
-    fHeterogeneityLog = nullptr;
+  // Clean up any existing heterogeneity volumes first
+  if (fHeterogeneityPhys) {
+    delete fHeterogeneityPhys;
     fHeterogeneityPhys = nullptr;
+  }
+  if (fHeterogeneityLog) {
+    delete fHeterogeneityLog;
+    fHeterogeneityLog = nullptr;
+  }
+  if (fHeterogeneitySolid) {
+    delete fHeterogeneitySolid;
+    fHeterogeneitySolid = nullptr;
+  }
+
+  if (!fHeterogeneityEnabled) {
+    G4cout << "Heterogeneity is DISABLED - not building." << G4endl;
     return;
   }
+
+  G4cout << "=== Building HETEROGENEITY ===" << G4endl;
+  G4cout << "  Material: " << fHeterogeneityMaterialName << G4endl;
+  G4cout << "  Size: " << 2.0 * fHeterogeneityHalfLengths << " mm" << G4endl;
+  G4cout << "  Position: " << fHeterogeneityPosition << " mm" << G4endl;
 
   auto* nist = G4NistManager::Instance();
   auto* material = nist->FindOrBuildMaterial(fHeterogeneityMaterialName);

@@ -1,8 +1,8 @@
-# TG186 Brachytherapy Analysis with Heterogeneity
-# Optimized for multi-threading (8 threads)
-# For cluster execution
+# I-125 Iodine Brachytherapy Analysis with Heterogeneity
+# Low energy source (35 keV) - strong Z-dependence in photoelectric effect
+# Optimized for multi-threading
 
-# Initialize multithreading (8 threads)
+# Initialize multithreading (16 threads)
 /run/numberOfThreads 16
 /run/initialize
 /control/verbose 1
@@ -10,8 +10,8 @@
 /run/verbose 0
 /event/verbose 0
 
-#### Define the geometry - TG186 source
-/source/switch TG186
+#### Define the geometry - Iodine source
+/source/switch Iodine
 
 #### Enable heterogeneity - Bone compact
 /phantom/heterogeneity/enable true
@@ -20,10 +20,10 @@
 /phantom/heterogeneity/position 40.0 0.0 0.0 mm
 
 #### Generate gamma from radioactive decay
-/control/execute iridium_source_primary.mac
+/control/execute iodine_source_primary.mac
 
 #### Define scoring mesh - 2D planar mesh (XY plane) to capture full phantom cross-section
-/score/create/boxMesh boxMesh_TG186
+/score/create/boxMesh boxMesh_I125
 # Mesh dimensions: 30 cm x 30 cm x 0.125 mm (XY plane, single slice)
 /score/mesh/boxSize 150.0 150.0 5.0 mm
 # Resolution: 300x300 voxels in XY plane (0.075 mm per voxel)
@@ -40,13 +40,13 @@
 #### Print mesh info
 /score/list
 /run/printProgress 100000
-#### Run simulation - 100,000,0 events for excellent statistics
+#### Run simulation - 1,000,000 events for excellent statistics
 /run/beamOn 1000000
 
 #### Dump scores to ASCII files
-/score/dumpQuantityToFile boxMesh_TG186 eDep EnergyDeposition_TG186.out
-/score/dumpQuantityToFile boxMesh_TG186 eDepPrimary EnergyDeposition_TG186_primary.out
-/score/dumpQuantityToFile boxMesh_TG186 eDepSecondary EnergyDeposition_TG186_secondary.out
+/score/dumpQuantityToFile boxMesh_I125 eDep EnergyDeposition_I125.out
+/score/dumpQuantityToFile boxMesh_I125 eDepPrimary EnergyDeposition_I125_primary.out
+/score/dumpQuantityToFile boxMesh_I125 eDepSecondary EnergyDeposition_I125_secondary.out
 
 #### Exit
 exit

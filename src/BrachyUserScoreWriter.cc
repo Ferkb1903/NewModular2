@@ -151,7 +151,32 @@ analysisManager -> SetActivation(true);
 G4String histoName = (psName == "eDep") ? G4String("h20") : G4String("h2_" + psName);
 G4String histoTitle = (psName == "eDep") ? G4String("edep2Dxy") : G4String(psName + "_edep2Dxy");
 
-G4int histo2= analysisManager-> CreateH2(histoName, histoTitle, 801, -100.125, 100.125, 801, -100.125, 100.125);
+// Calculate histogram dimensions based on actual mesh size
+G4int numberOfBinsX = fNMeshSegments[0];
+G4int numberOfBinsY = fNMeshSegments[1];
+
+// Get mesh half-widths from the scoring mesh
+G4ThreeVector meshSize = fScoringMesh->GetSize();
+G4double halfWidthX = meshSize.x();
+G4double halfWidthY = meshSize.y();
+
+// Calculate voxel width
+G4double voxelWidthX = 2.0 * halfWidthX / numberOfBinsX;
+G4double voxelWidthY = 2.0 * halfWidthY / numberOfBinsY;
+
+// Histogram range: -halfWidth to +halfWidth with bins centered
+G4double xMin = -halfWidthX - voxelWidthX/2.0;
+G4double xMax = +halfWidthX + voxelWidthX/2.0;
+G4double yMin = -halfWidthY - voxelWidthY/2.0;
+G4double yMax = +halfWidthY + voxelWidthY/2.0;
+
+G4cout << "Creating histogram with dimensions:" << G4endl;
+G4cout << "  X: " << numberOfBinsX << " bins from " << xMin << " to " << xMax << " mm" << G4endl;
+G4cout << "  Y: " << numberOfBinsY << " bins from " << yMin << " to " << yMax << " mm" << G4endl;
+
+G4int histo2= analysisManager-> CreateH2(histoName, histoTitle, 
+                                          numberOfBinsX, xMin, xMax, 
+                                          numberOfBinsY, yMin, yMax);
 
 // Histo 0 with the energy spectrum will not be saved 
 // in brachytherapy.root
@@ -163,14 +188,17 @@ for(int x = 0; x < fNMeshSegments[0]; x++) {
      for(int z = 0; z < fNMeshSegments[2]; z++){
         G4int numberOfVoxel_x = fNMeshSegments[0];
         G4int numberOfVoxel_y = fNMeshSegments[1];
-        G4int numberOfVoxel_z =fNMeshSegments[2];
-        // If the voxel width is changed in the macro file, 
-        // the voxel width variable must be updated
-        G4double voxelWidth = 0.25 *CLHEP::mm;
-        //
-        G4double xx = ( - numberOfVoxel_x + 1+ 2*x )* voxelWidth/2;
-        G4double yy = ( - numberOfVoxel_y + 1+ 2*y )* voxelWidth/2;
-        G4double zz = ( - numberOfVoxel_z + 1+ 2*z )* voxelWidth/2;
+        G4int numberOfVoxel_z = fNMeshSegments[2];
+        
+        // Calculate voxel widths from mesh size
+        G4ThreeVector meshSize = fScoringMesh->GetSize();
+        G4double voxelWidth_x = 2.0 * meshSize.x() / numberOfVoxel_x;
+        G4double voxelWidth_y = 2.0 * meshSize.y() / numberOfVoxel_y;
+        G4double voxelWidth_z = 2.0 * meshSize.z() / numberOfVoxel_z;
+        
+        G4double xx = ( - numberOfVoxel_x + 1+ 2*x )* voxelWidth_x/2;
+        G4double yy = ( - numberOfVoxel_y + 1+ 2*y )* voxelWidth_y/2;
+        G4double zz = ( - numberOfVoxel_z + 1+ 2*z )* voxelWidth_z/2;
         G4int idx = GetIndex(x, y, z);
         std::map<G4int, G4StatDouble*>::iterator value = score -> find(idx);
         
@@ -182,9 +210,10 @@ for(int x = 0; x < fNMeshSegments[0]; x++) {
                <<(value->second->sum_wx())/keV << G4endl;
         
         // Save the same information in the ROOT output file
-   
-    if(zz> -0.125 *CLHEP::mm && zz < 0.125/mm) 
-         analysisManager->FillH2(histo2, xx, yy, (value->second->sum_wx())/keV);
+        // Include all Z voxels (not just z=0)
+        G4double halfWidthZ = meshSize.z();
+        if(zz > -halfWidthZ && zz < halfWidthZ) 
+             analysisManager->FillH2(histo2, xx, yy, (value->second->sum_wx())/keV);
 }}}} 
 
 ofile << std::setprecision(6);

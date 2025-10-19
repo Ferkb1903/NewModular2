@@ -1,0 +1,42 @@
+======================================================================
+REGIONAL DOSE ANALYSIS - HETEROGENEITY vs HOMOGENEOUS
+======================================================================
+
+MATERIAL PROPERTIES:
+  Water: ρ = 1.0 g/cm³
+  Bone (G4_BONE_COMPACT_ICRU): ρ = 1.92 g/cm³
+
+VOXEL PARAMETERS:
+  Size: 1.003 × 1.003 × 10.0 mm
+  Volume: 0.010067 cm³
+  Mass (water): 1.006678e-05 kg
+  Mass (bone): 1.932821e-05 kg
+
+CONVERSION FACTORS:
+  Water: 1 keV = 1.591373e-08 Gy
+  Bone: 1 keV = 8.288402e-09 Gy
+  Ratio (bone/water): 0.521x
+
+======================================================================
+TOTAL DOSE COMPARISON
+======================================================================
+WITH Heterogeneity:  4.846436e-01 Gy
+Homogeneous (water): 4.843490e-01 Gy
+Difference:          2.945681e-04 Gy
+Change:              +0.06%
+
+======================================================================
+DOSE BY REGION
+======================================================================
+
+IN HETEROGENEITY REGION (Bone):
+  Hetero (with bone):  5.338585e-03 Gy
+  Homo (water equiv):  3.882469e-03 Gy
+  Difference:          1.456116e-03 Gy
+  Change:              +37.50%
+
+OUTSIDE HETEROGENEITY REGION (Water):
+  Hetero (water):      4.793050e-01 Gy
+  Homo (water):        4.804665e-01 Gy
+  Difference:          -1.161548e-03 Gy
+  Change:              -0.24%
