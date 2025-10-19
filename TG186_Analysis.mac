@@ -41,8 +41,8 @@
 #### Print mesh info
 /score/list
 
-#### Run simulation - 10000 events for good statistics
-/run/beamOn 10000
+#### Run simulation - 100,000,000 events for excellent statistics
+/run/beamOn 100000000
 
 #### Dump scores to ASCII files
 /score/dumpQuantityToFile boxMesh_TG186 eDep EnergyDeposition_TG186.out
