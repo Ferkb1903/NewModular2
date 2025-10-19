@@ -1,0 +1,50 @@
+# TG186 Brachytherapy Analysis - All Bone Phantom
+# Optimized for multi-threading (8 threads)
+# For cluster execution
+
+# Initialize multithreading (8 threads)
+/run/numberOfThreads 8
+
+/run/initialize
+/control/verbose 1
+/tracking/verbose 0
+/run/verbose 0
+/event/verbose 0
+
+#### Define the geometry - TG186 source
+/source/switch TG186
+
+#### Set phantom material to bone (no heterogeneity, homogeneous)
+/phantom/setMaterial G4_BONE_COMPACT_ICRU
+
+#### Generate gamma from radioactive decay
+/control/execute iridium_source_primary.mac
+
+#### Define scoring mesh - 2D planar mesh (XY plane) to capture full phantom cross-section
+/score/create/boxMesh boxMesh_TG186_bone
+# Mesh dimensions: 30 cm x 30 cm x 0.125 mm (XY plane, single slice)
+/score/mesh/boxSize 15.0 15.0 0.0625 mm
+# Resolution: 400x400 voxels in XY plane (0.075 mm per voxel)
+/score/mesh/nBin 400 400 1
+# Centered at origin to capture full phantom cross-section
+
+#### Define scoring quantities
+/score/quantity/energyDeposit eDep
+/score/quantity/energyDeposit eDepPrimary
+/score/quantity/energyDeposit eDepSecondary
+
+/score/close
+
+#### Print mesh info
+/score/list
+
+#### Run simulation - 100,000,000 events for excellent statistics
+/run/beamOn 100000000
+
+#### Dump scores to ASCII files
+/score/dumpQuantityToFile boxMesh_TG186_bone eDep EnergyDeposition_TG186_AllBone.out
+/score/dumpQuantityToFile boxMesh_TG186_bone eDepPrimary EnergyDeposition_TG186_AllBone_primary.out
+/score/dumpQuantityToFile boxMesh_TG186_bone eDepSecondary EnergyDeposition_TG186_AllBone_secondary.out
+
+#### Exit
+exit
