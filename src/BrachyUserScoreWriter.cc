@@ -40,6 +40,18 @@ Original code from geant4/examples/extended/runAndEvent/RE03, by M. Asai
 #include "G4SystemOfUnits.hh" 
 #include <map>
 #include <fstream>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+// Helper function to generate timestamp string
+static G4String GetTimestampString() {
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%Y%m%d_%H%M%S");
+  return oss.str();
+}
 // The default output is
 // voxelX, voxelY, voxelZ, edep
 // The BrachyUserScoreWriter allows to change the format of the output file.
@@ -74,8 +86,20 @@ std::transform(opt.begin(), opt.end(), opt.begin(), (int (*)(int))(tolower));
 // confirm the option
 if(opt.size() == 0) opt = "csv";
 
+// Generate filename with timestamp
+G4String timestamp = GetTimestampString();
+G4String baseFileName = fileName;
+// Extract the base name without extension
+size_t dotPos = baseFileName.find_last_of(".");
+G4String fileNameWithTimestamp;
+if (dotPos != std::string::npos) {
+  fileNameWithTimestamp = baseFileName.substr(0, dotPos) + "_" + timestamp + baseFileName.substr(dotPos);
+} else {
+  fileNameWithTimestamp = baseFileName + "_" + timestamp;
+}
+
 // open the file
-std::ofstream ofile(fileName);
+std::ofstream ofile(fileNameWithTimestamp);
   
 if(!ofile) 
 {
@@ -111,7 +135,7 @@ if (psName != "eDep") {
   rootFileName += "_";
   rootFileName += psName;
 }
-rootFileName += ".root";
+rootFileName += "_" + timestamp + ".root";
 
 G4bool fileOpen = analysisManager -> OpenFile(rootFileName);
  if (! fileOpen) {
