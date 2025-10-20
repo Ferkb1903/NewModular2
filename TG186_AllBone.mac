@@ -15,7 +15,7 @@
 /source/switch TG186
 
 #### Set phantom material to bone (no heterogeneity, homogeneous)
-/phantom/setMaterial G4_BONE_COMPACT_ICRU
+/phantom/setMaterial G4_WATER
 
 #### Generate gamma from radioactive decay
 /control/execute iridium_source_primary.mac

@@ -120,14 +120,23 @@ void BrachyDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue
   }
 
   if (command == fHeteroMaterialCmd) {
+    if (!fDetector->IsHeterogeneityEnabled()) {
+      G4cout << "WARNING: Heterogeneity is currently DISABLED. Material change will be stored but not applied until you set /phantom/heterogeneity/enable true" << G4endl;
+    }
     fDetector->SetHeterogeneityMaterial(newValue);
   }
 
   if (command == fHeteroSizeCmd) {
+    if (!fDetector->IsHeterogeneityEnabled()) {
+      G4cout << "WARNING: Heterogeneity is currently DISABLED. Size change will be stored but not applied until you set /phantom/heterogeneity/enable true" << G4endl;
+    }
     fDetector->SetHeterogeneitySize(fHeteroSizeCmd->GetNew3VectorValue(newValue));
   }
 
   if (command == fHeteroPositionCmd) {
+    if (!fDetector->IsHeterogeneityEnabled()) {
+      G4cout << "WARNING: Heterogeneity is currently DISABLED. Position change will be stored but not applied until you set /phantom/heterogeneity/enable true" << G4endl;
+    }
     fDetector->SetHeterogeneityPosition(fHeteroPositionCmd->GetNew3VectorValue(newValue));
   }
 }

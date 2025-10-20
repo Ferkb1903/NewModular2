@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm, LogNorm
 
 # Open ROOT files
-file_hetero = uproot.open("brachytherapy_20251018_232003.root")
-file_homo = uproot.open("brachytherapy_20251018_233210.root")
+file_hetero = uproot.open("brachytherapy_Bone_Hetero.root")
+file_homo = uproot.open("brachytherapy_Water_Homo.root")
 
 # Get histograms
 h_hetero = file_hetero["h20"]

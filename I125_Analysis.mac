@@ -14,13 +14,14 @@
 /source/switch Iodine
 
 #### Enable heterogeneity - Bone compact
-/phantom/heterogeneity/enable true
+#/phantom/selectMaterial G4_BONE_COMPACT_ICRU
+/phantom/heterogeneity/enable false
 /phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
 /phantom/heterogeneity/size 6.0 6.0 6.0 cm
 /phantom/heterogeneity/position 40.0 0.0 0.0 mm
 
-#### Generate gamma from radioactive decay
-/control/execute iodine_source_primary.mac
+#### Generate gamma from radioactive decay (natural I-125 spectrum)
+/control/execute iodine_decay.mac
 
 #### Define scoring mesh - 2D planar mesh (XY plane) to capture full phantom cross-section
 /score/create/boxMesh boxMesh_I125
@@ -41,7 +42,7 @@
 /score/list
 /run/printProgress 100000
 #### Run simulation - 1,000,000 events for excellent statistics
-/run/beamOn 1000000
+/run/beamOn 100000
 
 #### Dump scores to ASCII files
 /score/dumpQuantityToFile boxMesh_I125 eDep EnergyDeposition_I125.out

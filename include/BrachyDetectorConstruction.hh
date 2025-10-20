@@ -65,6 +65,7 @@ public:
   void SetHeterogeneityMaterial(const G4String& materialName);
   void SetHeterogeneitySize(const G4ThreeVector& size);
   void SetHeterogeneityPosition(const G4ThreeVector& position);
+  G4bool IsHeterogeneityEnabled() const { return fHeterogeneityEnabled; }
 
 private:
   BrachyFactory* fFactory;

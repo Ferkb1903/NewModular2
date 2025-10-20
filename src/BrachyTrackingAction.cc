@@ -67,6 +67,7 @@ void BrachyTrackingAction::PostUserTrackingAction(const G4Track* track)
   auto* parentInfo = EnsureTrackInformation(track);
   const auto parentIsGamma = (track->GetDefinition() == G4Gamma::Definition());
   const G4bool parentPhotonLineage = parentInfo->IsPhotonLineage();
+  const G4bool parentIsPrimaryCarrier = parentInfo->IsPrimaryDoseCarrier();
 
   for (auto* secondary : *secondaries) {
     auto* info = new BrachyTrackInformation();
@@ -74,12 +75,22 @@ void BrachyTrackingAction::PostUserTrackingAction(const G4Track* track)
     const auto* definition = secondary->GetDefinition();
     const G4double charge = definition->GetPDGCharge();
 
+    // Inherit photon lineage if secondary is a gamma
     if (definition == G4Gamma::Definition() && parentPhotonLineage) {
       info->SetPhotonLineage(true);
     }
 
-    if (charge != 0.0 && parentIsGamma && parentPhotonLineage) {
-      info->SetPrimaryDoseCarrier(true);
+    // PRIMARY DOSE CARRIERS: 
+    // 1. Charged particles directly produced by gamma (photoelectric, Compton, pair production)
+    // 2. OR charged descendants of primary carriers
+    if (charge != 0.0) {
+      if (parentIsGamma) {
+        // Direct charged secondary from gamma = PRIMARY
+        info->SetPrimaryDoseCarrier(true);
+      } else if (parentIsPrimaryCarrier) {
+        // Secondary from a primary carrier = PRIMARY
+        info->SetPrimaryDoseCarrier(true);
+      }
     }
 
     secondary->SetUserInformation(info);

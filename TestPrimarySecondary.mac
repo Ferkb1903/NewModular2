@@ -1,0 +1,30 @@
+/run/initialize
+
+/control/verbose 0
+/tracking/verbose 0
+/run/verbose 0
+/event/verbose 0
+
+# Use TG186 source for testing
+/source/switch TG186
+/control/execute TG186_iridium_decay.mac
+
+# Scoring mesh
+/score/create/boxMesh boxMesh
+/score/mesh/boxSize 150.0 150.0 5.0 mm
+/score/mesh/nBin 300 300 1
+
+# Create three scoring quantities
+/score/quantity/energyDeposit eDep
+/score/quantity/energyDeposit eDepPrimary
+/score/quantity/energyDeposit eDepSecondary
+
+/score/close
+
+# Run simulation with 1000 events (small number for quick test)
+/run/beamOn 100
+
+# Dump scores
+/score/dumpQuantityToFile boxMesh eDep output_total.out
+/score/dumpQuantityToFile boxMesh eDepPrimary output_primary.out
+/score/dumpQuantityToFile boxMesh eDepSecondary output_secondary.out

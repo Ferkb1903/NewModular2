@@ -1,0 +1,34 @@
+# HeterogeneousTest.mac
+# Test macro to demonstrate heterogeneity ENABLED properly
+# No warnings because heterogeneity will be active when we define parameters
+
+/control/verbose 2
+/run/verbose 1
+
+# Switch to Lung and ENABLE heterogeneity
+/phantom/selectMaterial G4_LUNG_ICRP
+/phantom/heterogeneity/enable true
+
+# These commands will work correctly now (no warnings):
+/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
+/phantom/heterogeneity/size 6.0 6.0 6.0 cm
+/phantom/heterogeneity/position 40.0 0.0 0.0 mm
+
+# Select source and initialize
+/source/switch TG186
+/run/initialize
+
+# Scoring setup (if configured)
+/score/open mesh boxMesh
+/score/mesh/shape box
+/score/mesh/boxSize 150.0 150.0 5.0 mm
+/score/mesh/nBin 300 300 1
+/score/quantity energyDeposit eDep
+/score/quantity energyDeposit eDep_primary
+/score/quantity energyDeposit eDep_secondary
+/score/filter/addFilter particleFilter eDep primary
+/score/filter/addFilter particleFilter eDep_secondary secondary
+/score/close mesh
+
+# Run 10k events
+/run/beamOn 10000

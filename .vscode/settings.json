@@ -7,6 +7,8 @@
         "macro.C": "cpp",
         "plot_primary.C": "cpp",
         "TG43_relative_dose.C": "cpp",
-        "compare_all.C": "cpp"
+        "compare_all.C": "cpp",
+        "compare_heterogeneity.C": "cpp",
+        "analyze_heterogeneity_region.C": "cpp"
     }
 }
