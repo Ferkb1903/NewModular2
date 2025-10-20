@@ -14,7 +14,7 @@
 /source/switch Iodine
 
 #### Enable heterogeneity - Bone compact
-#/phantom/selectMaterial G4_BONE_COMPACT_ICRU
+/phantom/selectMaterial G4_BONE_COMPACT_ICRU
 /phantom/heterogeneity/enable false
 /phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
 /phantom/heterogeneity/size 6.0 6.0 6.0 cm
@@ -42,7 +42,7 @@
 /score/list
 /run/printProgress 100000
 #### Run simulation - 1,000,000 events for excellent statistics
-/run/beamOn 100000
+/run/beamOn 1000000
 
 #### Dump scores to ASCII files
 /score/dumpQuantityToFile boxMesh_I125 eDep EnergyDeposition_I125.out
