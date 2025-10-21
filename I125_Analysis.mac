@@ -14,9 +14,9 @@
 /source/switch Iodine
 
 #### Enable heterogeneity - Bone compact
-/phantom/selectMaterial G4_BONE_COMPACT_ICRU
-/phantom/heterogeneity/enable false
-/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
+#/phantom/selectMaterial G4_BONE_COMPACT_ICRU
+/phantom/heterogeneity/enable true
+/phantom/heterogeneity/material G4_LUNG_MIRD
 /phantom/heterogeneity/size 6.0 6.0 6.0 cm
 /phantom/heterogeneity/position 40.0 0.0 0.0 mm
 

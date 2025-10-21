@@ -71,6 +71,9 @@ BrachyDetectorConstruction::BrachyDetectorConstruction():
  // Define the messenger of the Detector component
  fDetectorMessenger = new BrachyDetectorMessenger(this);
 
+ // Define custom materials
+ DefineMaterials();
+
  // Define half size of the phantom along the x, y, z axis
  fPhantomSizeX = 15.*cm;
  fPhantomSizeY = 15.*cm;
@@ -375,4 +378,54 @@ void BrachyDetectorConstruction::BuildHeterogeneity()
   heteroVis->SetVisibility(true);
   heteroVis->SetForceSolid(true);
   fHeterogeneityLog->SetVisAttributes(heteroVis);
+}
+
+void BrachyDetectorConstruction::DefineMaterials()
+{
+  // Define custom materials not available in NIST database
+  G4NistManager* nist = G4NistManager::Instance();
+  
+  // Get elements from NIST
+  G4Element* elH  = nist->FindOrBuildElement("H");
+  G4Element* elC  = nist->FindOrBuildElement("C");
+  G4Element* elN  = nist->FindOrBuildElement("N");
+  G4Element* elO  = nist->FindOrBuildElement("O");
+  G4Element* elNa = nist->FindOrBuildElement("Na");
+  G4Element* elMg = nist->FindOrBuildElement("Mg");
+  G4Element* elP  = nist->FindOrBuildElement("P");
+  G4Element* elS  = nist->FindOrBuildElement("S");
+  G4Element* elCl = nist->FindOrBuildElement("Cl");
+  G4Element* elK  = nist->FindOrBuildElement("K");
+  G4Element* elCa = nist->FindOrBuildElement("Ca");
+  G4Element* elFe = nist->FindOrBuildElement("Fe");
+  G4Element* elZn = nist->FindOrBuildElement("Zn");
+  G4Element* elRb = nist->FindOrBuildElement("Rb");
+  G4Element* elSr = nist->FindOrBuildElement("Sr");
+  G4Element* elPb = nist->FindOrBuildElement("Pb");
+
+  // MIRD lung material (with air - inflated lung)
+  // Density: 0.2958 g/cm3 (much lower than ICRP compact lung at 1.05 g/cm3)
+  G4double density = 0.2958*g/cm3;
+  G4Material* lung_MIRD = new G4Material("G4_LUNG_MIRD", density, 16);
+  lung_MIRD->AddElement(elH,  0.1021);
+  lung_MIRD->AddElement(elC,  0.1001);
+  lung_MIRD->AddElement(elN,  0.028);
+  lung_MIRD->AddElement(elO,  0.7596);
+  lung_MIRD->AddElement(elNa, 0.0019);
+  lung_MIRD->AddElement(elMg, 0.000074);
+  lung_MIRD->AddElement(elP,  0.00081);
+  lung_MIRD->AddElement(elS,  0.0023);
+  lung_MIRD->AddElement(elCl, 0.0027);
+  lung_MIRD->AddElement(elK,  0.0020);
+  lung_MIRD->AddElement(elCa, 0.00007);
+  lung_MIRD->AddElement(elFe, 0.00037);
+  lung_MIRD->AddElement(elZn, 0.000011);
+  lung_MIRD->AddElement(elRb, 0.0000037);
+  lung_MIRD->AddElement(elSr, 0.000000059);
+  lung_MIRD->AddElement(elPb, 0.00000041);
+
+  G4cout << "\n=== Custom Materials Defined ===" << G4endl;
+  G4cout << "G4_LUNG_MIRD: density = " << density/(g/cm3) << " g/cm3 (inflated lung with air)" << G4endl;
+  G4cout << "  Note: This is different from G4_LUNG_ICRP (1.05 g/cm3, deflated)" << G4endl;
+  G4cout << "================================\n" << G4endl;
 }

@@ -98,5 +98,6 @@ private:
   G4VPhysicalVolume* fHeterogeneityPhys;
 
   void BuildHeterogeneity();
+  void DefineMaterials(); // Define custom materials
 };
 #endif

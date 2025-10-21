@@ -1,0 +1,49 @@
+########################################
+# Test MIRD Lung Material - 1M eventos
+# Homogéneo (solo Lung MIRD)
+########################################
+
+/control/verbose 2
+/run/verbose 2
+/event/verbose 0
+/tracking/verbose 0
+
+# Inicialización
+/run/initialize
+
+# Seleccionar fuente (Iodine I-125 seed)
+/source/switch Iodine
+
+# Configurar fuente de I125
+/gps/particle ion
+/gps/ion 53 125 0 0
+/gps/energy 0. keV
+
+# Posición de la fuente (centrada)
+/gps/pos/type Point
+/gps/pos/centre 0. 0. 0. mm
+
+# Dirección isotrópica
+/gps/ang/type iso
+
+# Configuración del fantoma
+# Fantoma totalmente de MIRD lung (homogéneo)
+
+# Material: MIRD lung (ρ=0.2958 g/cm³)
+/phantom/setMaterial G4_LUNG_MIRD
+
+# Sin heterogeneidad
+/heterogeneity/enable false
+
+# Análisis
+/analysis/setFileName brachytherapy_mird_lung_homo1m
+/analysis/setFileNamePrimary brachytherapy_eDepPrimary_mird_lung_homo1m
+/analysis/setFileNameSecondary brachytherapy_eDepSecondary_mird_lung_homo1m
+
+# Ejecutar simulación
+/run/beamOn 1000000
+
+# Resultado esperado:
+# - brachytherapy_eDepPrimary_mird_lung_homo1m.root
+# - brachytherapy_eDepSecondary_mird_lung_homo1m.root
+# - brachytherapy_mird_lung_homo1m.root

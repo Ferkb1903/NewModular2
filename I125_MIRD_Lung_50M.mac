@@ -1,0 +1,46 @@
+# Macro for I125 Brachytherapy Source with MIRD Lung Heterogeneity  
+# 50M events for quick testing
+# MIRD Lung: density = 0.2958 g/cm³ (inflated lung with air)
+
+/control/verbose 1
+/run/verbose 1
+/event/verbose 0
+/tracking/verbose 0
+
+# Initialize kernel
+/run/initialize
+
+# Select the brachytherapy source (Iodine I-125 seed)
+/source/switch Iodine
+
+# Primary source: I-125 decay spectrum
+/gps/particle ion
+/gps/ion 53 125 0 0
+/gps/energy 0. keV
+
+# Point source at center
+/gps/pos/type Point
+/gps/pos/centre 0. 0. 0. mm
+
+# Isotropic emission
+/gps/ang/type iso
+
+# Set phantom material to water
+/phantom/setMaterial G4_WATER
+
+# Enable heterogeneity with MIRD lung material
+/heterogeneity/enable true
+/heterogeneity/material G4_LUNG_MIRD
+/heterogeneity/size 60. 60. 60. mm
+/heterogeneity/position 40. 0. 0. mm
+
+# Set output file names
+/analysis/setFileName brachytherapy_MIRD_lung50m
+/analysis/setFileNamePrimary brachytherapy_eDepPrimary_MIRD_lung50m
+/analysis/setFileNameSecondary brachytherapy_eDepSecondary_MIRD_lung50m
+
+# Run 50M events
+/run/beamOn 50000000
+
+# Print summary
+/heterogeneity/print
