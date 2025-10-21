@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Conversión de edep a Dosis por Secciones
-Braquiterapia I125 (200M)
+Braquiterapia I125 (100M)
 Aplica densidades diferentes dentro y fuera de la heterogeneidad
 """
 
@@ -13,8 +13,8 @@ import matplotlib.patches as patches
 import os
 
 # Configuración
-DATA_DIR = "/home/fer/fer/newbrachy/200M_I125"
-HISTOGRAM_NAME = "h20;1"
+DATA_DIR = "/home/fer/fer/newbrachy/100M_I125_pri-sec"
+HISTOGRAM_NAME = "h20"
 
 # Parámetros de heterogeneidad (del macro)
 HETERO_SIZE = 60.0  # mm (6.0 cm)
@@ -23,20 +23,23 @@ HETERO_POS_Y = 0.0   # mm (posición en Y)
 
 # Casos de simulación
 CASES = {
-    "Water_Homo": "brachytherapy_water_homo200m.root",
-    "Bone_Hetero": "brachytherapy_Bone_Hetero200m.root",
-    "Lung_Hetero": "brachytherapy_Lung_Hetero200m.root"
+    "Water_Homo": "brachytherapy_homo_water100m.root",
+    "Lung_ICRP_Hetero": "brachytherapy_hetero_lung100m.root",
+    "Lung_Hueco_Hetero": "brachytherapy_hetero_lunghueco100m.root",
+    "Bone_Hetero": "brachytherapy_hetero_bone100m.root",
+    "Lung_Hueco_Homo": "brachytherapy_lunghueco_homo100m.root",
+    "Lung_ICRP_Homo": "brachytherapy_homo_lung100m.root"
 }
 
-# Densidades base
+# Densidades base (g/cm³)
 DENSITY_WATER = 1.0
 DENSITY_BONE = 1.85
-DENSITY_LUNG = 1.05
+DENSITY_LUNG_ICRP = 1.05  # Lung compacto (ICRP)
+DENSITY_LUNG_MIRD = 0.2958  # Lung inflado con aire (MIRD)
 
-# Tamaño de bins
+# Tamaño de bins (plano XY de 1 mm y espesor axial de 0.125 mm)
 BIN_SIZE_MM = 1.0
 BIN_SIZE_CM = BIN_SIZE_MM / 10.0
-BIN_VOLUME = BIN_SIZE_CM ** 3
 
 def load_histogram(filepath, hist_name):
     """Carga un histograma 2D de un archivo ROOT"""
@@ -58,16 +61,34 @@ def create_density_map(shape, case_name):
     
     Para Water_Homo: todo agua (1.0 g/cm³)
     Para Bone_Hetero: agua (1.0) fuera, hueso (1.85) dentro
-    Para Lung_Hetero: agua (1.0) fuera, pulmón (0.26) dentro
+    Para Lung_ICRP_Hetero: agua (1.0) fuera, pulmón ICRP (1.05) dentro
+    Para Lung_Hueco_Hetero: agua (1.0) fuera, pulmón MIRD (0.2958) dentro
+    Para Lung_ICRP_Homo: todo pulmón ICRP (1.05)
+    Para Lung_Hueco_Homo: todo pulmón MIRD (0.2958)
     """
     
+    # Determinar densidad de la región principal
+    if "Homo" in case_name and "Lung_ICRP" in case_name:
+        # Todo es pulmón ICRP
+        return np.ones(shape, dtype=float) * DENSITY_LUNG_ICRP
+    elif "Homo" in case_name and "Lung_Hueco" in case_name:
+        # Todo es pulmón MIRD (hueco)
+        return np.ones(shape, dtype=float) * DENSITY_LUNG_MIRD
+    elif case_name == "Water_Homo":
+        # Todo es agua
+        return np.ones(shape, dtype=float) * DENSITY_WATER
+    
+    # Para casos heterogéneos, empezar con agua
     density_map = np.ones(shape, dtype=float) * DENSITY_WATER
     
-    if case_name == "Bone_Hetero":
+    # Determinar densidad de heterogeneidad
+    if "Bone" in case_name:
         hetero_density = DENSITY_BONE
-    elif case_name == "Lung_Hetero":
-        hetero_density = DENSITY_LUNG
-    else:  # Water_Homo
+    elif "Lung_ICRP" in case_name:
+        hetero_density = DENSITY_LUNG_ICRP
+    elif "Lung_Hueco" in case_name:
+        hetero_density = DENSITY_LUNG_MIRD
+    else:
         return density_map
     
     # Calcular índices de la región de heterogeneidad
@@ -100,16 +121,21 @@ def edep_to_dose_sectional(edep_values, case_name):
     """
     Convierte edep a dosis por secciones
     Aplica densidades diferentes dentro y fuera de la heterogeneidad
+    
+    Conversión: Dosis (Gy) = edep (MeV) * 1.602e-10 / (volumen_cm³ * densidad_g/cm³)
     """
     density_map = create_density_map(edep_values.shape, case_name)
     
     # Evitar división por cero
     density_map[density_map == 0] = DENSITY_WATER
     
-    # Convertir: Dosis (mGy) = edep * 1.602e-4 / (volumen * densidad)
-    dose_mgy = edep_values * 1.602e-4 / (BIN_VOLUME * density_map)
+    # Volumen por bin: 1 mm x 1 mm x 0.125 mm = 0.125 mm³ = 0.125e-3 cm³
+    bin_volume_cm3 = (BIN_SIZE_MM / 10) ** 2 * 0.0125  # 0.125 mm grosor = 0.0125 cm
     
-    return dose_mgy, density_map
+    # Convertir: Dosis (Gy) = edep * 1.602e-10 / (volumen * densidad)
+    dose_gy = edep_values * 1.602e-10 / (bin_volume_cm3 * density_map)
+    
+    return dose_gy, density_map
 
 def draw_heterogeneity(ax):
     """Dibuja un rectángulo que marca la región de heterogeneidad"""
@@ -139,7 +165,7 @@ def draw_heterogeneity(ax):
 def plot_dose_sectional():
     """Crea visualización de dosis convertida por secciones"""
     
-    fig = plt.figure(figsize=(18, 5))
+    fig = plt.figure(figsize=(20, 12))
     
     # Cargar todos los histogramas
     histograms = {}
@@ -159,14 +185,19 @@ def plot_dose_sectional():
     densities_info = {
         "Water_Homo": "Agua: 1.0 g/cm³",
         "Bone_Hetero": "Agua: 1.0 | Hueso: 1.85 g/cm³",
-        "Lung_Hetero": "Agua: 1.0 | Pulmón: 0.26 g/cm³"
+        "Lung_ICRP_Hetero": "Agua: 1.0 | Pulmón ICRP: 1.05 g/cm³",
+        "Lung_Hueco_Hetero": "Agua: 1.0 | Pulmón MIRD: 0.2958 g/cm³",
+        "Lung_ICRP_Homo": "Pulmón ICRP: 1.05 g/cm³ (todo)",
+        "Lung_Hueco_Homo": "Pulmón MIRD: 0.2958 g/cm³ (todo)"
     }
     
-    for idx, case_name in enumerate(CASES.keys()):
-        ax = plt.subplot(1, 3, idx + 1)
-        
-        if case_name not in histograms:
-            continue
+    # Organizar en subplots (3x2)
+    num_cases = len(histograms)
+    n_rows = 3
+    n_cols = 2
+    
+    for plot_idx, case_name in enumerate(histograms.keys()):
+        ax = plt.subplot(n_rows, n_cols, plot_idx + 1)
         
         values_edep = histograms[case_name]
         
@@ -185,35 +216,32 @@ def plot_dose_sectional():
             norm=colors.LogNorm(vmin=values_log.min(), vmax=values_log.max())
         )
         
-        ax.set_title(f'{case_name}\n{densities_info[case_name]}', 
+        ax.set_title(f'{case_name}\n{densities_info.get(case_name, "")}', 
                     fontsize=11, fontweight='bold')
         ax.set_xlabel('X (bins)')
         ax.set_ylabel('Y (bins)')
-        plt.colorbar(im, ax=ax, label='Dosis (mGy)')
+        plt.colorbar(im, ax=ax, label='Dosis (Gy)', format='%.1e')
         draw_heterogeneity(ax)
     
-    plt.suptitle('Mapas de Dosis (Conversión por Secciones) - I125 200M', 
+    plt.suptitle('Mapas de Dosis (Conversión por Secciones) - I125 100M', 
                  fontsize=14, fontweight='bold')
     plt.tight_layout()
     
-    output_file = os.path.join(DATA_DIR, '2D_dose_maps_sectional.png')
+    output_file = os.path.join(DATA_DIR, 'dose_maps_sectional_3x2.png')
     plt.savefig(output_file, dpi=150, bbox_inches='tight')
     print(f"\n✅ Gráfica guardada: {output_file}")
     
     # Estadísticas
-    print("\n" + "="*70)
-    print("ESTADÍSTICAS DE DOSIS POR SECCIONES")
-    print("="*70)
+    print("\n" + "="*80)
+    print("ESTADÍSTICAS DE DOSIS POR SECCIONES - 100M")
+    print("="*80)
     
-    for case_name in CASES.keys():
-        if case_name not in histograms:
-            continue
-        
+    for case_name in histograms.keys():
         values_dose, density_map = edep_to_dose_sectional(histograms[case_name], case_name)
         values_dose_positive = values_dose[values_dose > 0]
         
         # Separar dentro y fuera de heterogeneidad (si aplica)
-        if case_name != "Water_Homo":
+        if case_name != "Water_Homo" and ("Hetero" in case_name):
             hetero_mask = density_map != DENSITY_WATER
             dose_hetero = values_dose[hetero_mask]
             dose_water = values_dose[~hetero_mask]
@@ -223,27 +251,27 @@ def plot_dose_sectional():
             
             print(f"\n{case_name}:")
             print(f"  Dosis total:")
-            print(f"    Media:   {np.mean(values_dose_positive):.6e} mGy")
-            print(f"    Máximo:  {np.max(values_dose_positive):.6e} mGy")
+            print(f"    Media:   {np.mean(values_dose_positive):.6e} Gy")
+            print(f"    Máximo:  {np.max(values_dose_positive):.6e} Gy")
             print(f"  En heterogeneidad:")
             if len(dose_hetero_pos) > 0:
-                print(f"    Media:   {np.mean(dose_hetero_pos):.6e} mGy")
-                print(f"    Máximo:  {np.max(dose_hetero_pos):.6e} mGy")
+                print(f"    Media:   {np.mean(dose_hetero_pos):.6e} Gy")
+                print(f"    Máximo:  {np.max(dose_hetero_pos):.6e} Gy")
             print(f"  En agua (fuera):")
             if len(dose_water_pos) > 0:
-                print(f"    Media:   {np.mean(dose_water_pos):.6e} mGy")
-                print(f"    Máximo:  {np.max(dose_water_pos):.6e} mGy")
+                print(f"    Media:   {np.mean(dose_water_pos):.6e} Gy")
+                print(f"    Máximo:  {np.max(dose_water_pos):.6e} Gy")
         else:
             print(f"\n{case_name}:")
-            print(f"  Dosis total (agua homogénea):")
-            print(f"    Media:   {np.mean(values_dose_positive):.6e} mGy")
-            print(f"    Máximo:  {np.max(values_dose_positive):.6e} mGy")
+            print(f"  Dosis total:")
+            print(f"    Media:   {np.mean(values_dose_positive):.6e} Gy")
+            print(f"    Máximo:  {np.max(values_dose_positive):.6e} Gy")
     
-    print("="*70 + "\n")
+    print("="*80 + "\n")
     plt.show()
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
-    print("CONVERSIÓN DE DOSIS POR SECCIONES - I125 200M")
-    print("="*70 + "\n")
+    print("\n" + "="*80)
+    print("CONVERSIÓN DE DOSIS POR SECCIONES - I125 100M")
+    print("="*80 + "\n")
     plot_dose_sectional()
