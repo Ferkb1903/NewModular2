@@ -1,0 +1,68 @@
+###############################################
+# TG186_Visualization.mac
+# Visualización del experimento Ir-192 (TG-186)
+# Muestra la heterogeneidad de hueso centrada en el eje X
+# y el plano de scoring empleado en los análisis de 200M eventos
+###############################################
+
+/control/verbose 1
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+
+# Seleccionar fuente Ir-192 TG-186
+/source/switch TG186
+
+# Definir material base del fantoma
+/phantom/setMaterial G4_WATER
+
+# Activar heterogeneidad (hueso compacto) centrada a 40 mm sobre el eje X
+/phantom/heterogeneity/enable true
+/phantom/heterogeneity/material G4_BONE_COMPACT_ICRU
+/phantom/heterogeneity/size 6.0 6.0 6.0 cm
+/phantom/heterogeneity/position 40.0 0.0 0.0 mm
+
+# Inicializar geometría y física
+/run/initialize
+
+# --- Definición de la malla de scoring utilizada en el estudio ---
+# Plano XY (z = 0), 300x300 bins de 1 mm, espesor 0.125 mm equivalente
+/score/create/boxMesh visMesh
+/score/mesh/shape box
+/score/mesh/boxSize 150.0 150.0 5.0 mm
+/score/mesh/nBin 300 300 1
+/score/quantity/energyDeposit eDep
+/score/close
+
+# --- Configuración de visualización ---
+/vis/open OGL 1024x768-0+0
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+
+# Dibujar el fantoma y la heterogeneidad (ya tiene color naranja sólido)
+/vis/drawVolume
+
+# Añadir ejes para referencia (50 mm)
+/vis/scene/add/axes 0 0 0 50 mm
+
+# Orientar la vista para apreciar el desplazamiento en +X
+/vis/viewer/set/viewpointThetaPhi 100.0 25.0
+/vis/viewer/zoom 3.0
+
+# Mostrar la malla de scoring como proyección transparente
+/score/drawProjection visMesh eDep
+
+# Configurar vis de trayectorias de ejemplo
+/vis/scene/add/trajectories smooth
+/vis/modeling/trajectories/create/drawByCharge
+/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 1
+/vis/scene/endOfEventAction accumulate
+
+/vis/viewer/set/autoRefresh true
+
+# Ejecutar un número reducido de eventos solo para obtener trayectorias ilustrativas
+/run/beamOn 10000
+
+# Guardar proyección qoi (opcional)
+#/vis/viewer/save ../200M_IR192/tg186_visualization.png
